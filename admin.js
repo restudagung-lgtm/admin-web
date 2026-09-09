@@ -1,3 +1,8 @@
+// ======================================================================
+// 🔴 WEB ADMIN    (folder: admin/)
+// File: admin.js
+// ======================================================================
+
 /*
   admin.js
   --------
@@ -27,8 +32,18 @@ async function renderAdminAuth(){
     </div>
     <div class="content">
       <div class="card">
-        <div class="field"><label>Buat password admin</label><input id="apNew" type="password" placeholder="minimal 6 karakter"></div>
-        <div class="field"><label>Ulangi password</label><input id="apNew2" type="password" placeholder="ulangi password"></div>
+        <div class="field"><label>Buat password admin</label>
+          <div class="pwd-wrap">
+            <input id="apNew" type="password" placeholder="minimal 6 karakter">
+            <button type="button" class="pwd-toggle" onclick="togglePwd('apNew', this)">Lihat</button>
+          </div>
+        </div>
+        <div class="field"><label>Ulangi password</label>
+          <div class="pwd-wrap">
+            <input id="apNew2" type="password" placeholder="ulangi password">
+            <button type="button" class="pwd-toggle" onclick="togglePwd('apNew2', this)">Lihat</button>
+          </div>
+        </div>
         <button class="btn btn-primary" onclick="setupAdmin()">Buat Akun Admin</button>
         <p id="setupMsg" class="muted" style="margin-top:8px;"></p>
       </div>
@@ -44,7 +59,12 @@ async function renderAdminAuth(){
   </div>
   <div class="content">
     <div class="card">
-      <div class="field"><label>Password admin</label><input id="apLogin" type="password" placeholder="••••••"></div>
+      <div class="field"><label>Password admin</label>
+        <div class="pwd-wrap">
+          <input id="apLogin" type="password" placeholder="••••••">
+          <button type="button" class="pwd-toggle" onclick="togglePwd('apLogin', this)">Lihat</button>
+        </div>
+      </div>
       <button class="btn btn-primary" onclick="doAdminLogin()">Masuk</button>
       <p id="loginMsg" class="muted" style="margin-top:8px;"></p>
     </div>
@@ -210,7 +230,12 @@ async function renderAdminSetting(){
   </div>
   <div class="card">
     <h3>Ganti Password Admin</h3>
-    <div class="field"><label>Password baru</label><input id="newAdminPass" type="password" placeholder="minimal 6 karakter"></div>
+    <div class="field"><label>Password baru</label>
+      <div class="pwd-wrap">
+        <input id="newAdminPass" type="password" placeholder="minimal 6 karakter">
+        <button type="button" class="pwd-toggle" onclick="togglePwd('newAdminPass', this)">Lihat</button>
+      </div>
+    </div>
     <button class="btn btn-outline" onclick="changeAdminPassword()">Simpan Password Baru</button>
     <p id="passMsg" class="muted" style="margin-top:8px;"></p>
   </div>`;
