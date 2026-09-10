@@ -25,10 +25,10 @@ async function renderAdminAuth(){
 
   if(!existing){
     app.innerHTML = `
-    <div class="hero">
+    <div class="hero-card">
       <div class="lamp">🛡️</div>
       <h1>Setup Admin</h1>
-      <p>Belum ada akun admin untuk alun-alun ini. Buat password admin sekali di awal.</p>
+      <p>Belum ada akun admin untuk alun-alun ini.<br>Buat password admin sekali di awal.</p>
     </div>
     <div class="content">
       <div class="card">
@@ -52,7 +52,7 @@ async function renderAdminAuth(){
   }
 
   app.innerHTML = `
-  <div class="hero">
+  <div class="hero-card">
     <div class="lamp">🛡️</div>
     <h1>Panel Admin</h1>
     <p>Masuk untuk memantau seluruh toko dan pesanan di alun-alun.</p>
@@ -106,10 +106,10 @@ async function renderAdminDash(){
   </div>
   <div class="content" id="adminContent"></div>
   <div class="tabbar">
-    <button id="a-ringkasan" onclick="switchAdminTab('ringkasan')">📊 Ringkasan</button>
-    <button id="a-toko" onclick="switchAdminTab('toko')">🏮 Toko</button>
-    <button id="a-pesanan" onclick="switchAdminTab('pesanan')">🧾 Pesanan</button>
-    <button id="a-setting" onclick="switchAdminTab('setting')">⚙️ Pengaturan</button>
+    <button id="a-ringkasan" onclick="switchAdminTab('ringkasan')">📊<span>Ringkasan</span></button>
+    <button id="a-toko" onclick="switchAdminTab('toko')">🏮<span>Toko</span></button>
+    <button id="a-pesanan" onclick="switchAdminTab('pesanan')">🧾<span>Pesanan</span></button>
+    <button id="a-setting" onclick="switchAdminTab('setting')">⚙️<span>Pengaturan</span></button>
   </div>`;
   switchAdminTab(state.adminTab || 'ringkasan');
 }
@@ -148,7 +148,7 @@ async function renderAdminRingkasan(){
   <div class="card"><div class="muted">Total pendapatan seluruh toko (pesanan selesai)</div><h3>${rupiah(pendapatan)}</h3></div>
   <div class="card">
     <h3>Tautan Cepat</h3>
-    <div class="stack">
+    <div class="stack" style="margin-top:10px;">
       <a href="${BUYER_SITE_URL}" target="_blank" class="btn btn-outline" style="text-align:center;text-decoration:none;">Buka Web Pembeli</a>
       <a href="${SELLER_SITE_URL}" target="_blank" class="btn btn-outline" style="text-align:center;text-decoration:none;">Buka Web Penjual</a>
     </div>
@@ -161,7 +161,7 @@ async function renderAdminToko(){
   el.innerHTML = '<div class="empty">Memuat toko…</div>';
   const storeKeys = await sList('store:', true);
   const stores = (await Promise.all(storeKeys.map(k => sGet(k, true)))).filter(Boolean);
-  if(stores.length === 0){ el.innerHTML = '<div class="empty">Belum ada toko terdaftar.</div>'; return; }
+  if(stores.length === 0){ el.innerHTML = '<div class="empty"><span class="empty-ic">🏮</span>Belum ada toko terdaftar.</div>'; return; }
   const rows = await Promise.all(stores.map(async s => {
     const menuKeys = await sList('menu:' + s.id + ':', true);
     return {...s, menuCount: menuKeys.length};
@@ -169,14 +169,17 @@ async function renderAdminToko(){
   el.innerHTML = rows.map(s => `
     <div class="card">
       <div class="row" style="align-items:flex-start;">
-        <div>
-          <h3 style="margin-bottom:2px;">${escapeHtml(s.name)}</h3>
-          <p class="muted" style="margin:0;">${escapeHtml(s.desc || 'Belum ada deskripsi')}</p>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div class="store-thumb" style="width:48px;height:48px;font-size:20px;${s.photoURL ? `background-image:url('${s.photoURL}')` : ''}">${s.photoURL ? '' : '🏮'}</div>
+          <div>
+            <h3 style="margin-bottom:2px;">${escapeHtml(s.name)}</h3>
+            <p class="muted" style="margin:0;">${escapeHtml(s.desc || 'Belum ada deskripsi')}</p>
+          </div>
         </div>
         <span class="badge badge-diproses">${s.menuCount} menu</span>
       </div>
       <div class="row" style="margin-top:10px;">
-        <span class="muted">Meja rujukan: ${s.nearTable || '- belum diisi -'}</span>
+        <span class="muted">Meja rujukan: ${s.nearTable || '- belum diisi -'}${s.qrisImage ? ' · QRIS ✓' : ''}</span>
         <button class="linklike" style="color:var(--chili);" onclick="deleteToko('${s.id}')">Hapus toko</button>
       </div>
     </div>`).join('');
@@ -199,9 +202,12 @@ async function renderAdminPesanan(){
   const orderKeys = await sList('order:', true);
   let orders = (await Promise.all(orderKeys.map(k => sGet(k, true)))).filter(Boolean);
   orders.sort((a,b) => b.createdAt - a.createdAt);
-  if(orders.length === 0){ el.innerHTML = '<div class="empty">Belum ada pesanan.</div>'; return; }
+  if(orders.length === 0){ el.innerHTML = '<div class="empty"><span class="empty-ic">🧾</span>Belum ada pesanan.</div>'; return; }
   const shown = orders.slice(0, 50);
-  el.innerHTML = shown.map(o => `
+  el.innerHTML = shown.map(o => {
+    const payLabel = o.paymentMethod === 'qris' ? 'QRIS' : 'Tunai';
+    const payStatus = o.paymentStatus || (o.paymentMethod === 'qris' ? 'lunas' : 'bayar_ditempat');
+    return `
     <div class="card">
       <div class="row">
         <div><strong>${escapeHtml(o.storeName)}</strong> <span class="muted">· Meja ${o.table}</span></div>
@@ -211,7 +217,11 @@ async function renderAdminPesanan(){
         <span class="muted">${new Date(o.createdAt).toLocaleString('id-ID')}</span>
         <strong>${rupiah(o.total)}</strong>
       </div>
-    </div>`).join('') + (orders.length > 50
+      <div class="row" style="margin-top:6px;">
+        <span class="badge badge-${payStatus}">${payLabel} ${payStatus === 'lunas' ? '· Lunas' : '· Bayar di tempat'}</span>
+      </div>
+    </div>`;
+  }).join('') + (orders.length > 50
       ? `<p class="muted" style="text-align:center;">Menampilkan 50 pesanan terbaru dari total ${orders.length}.</p>`
       : '');
 }
@@ -223,14 +233,14 @@ async function renderAdminSetting(){
   el.innerHTML = `
   <div class="card">
     <h3>Jumlah Meja di Alun-Alun</h3>
-    <p class="muted">Dipakai untuk denah lokasi & pengurutan toko terdekat di seluruh sistem.</p>
+    <p class="muted" style="margin:4px 0 10px;">Dipakai untuk denah lokasi & pengurutan toko terdekat di seluruh sistem.</p>
     <div class="field"><label>Jumlah meja</label><input id="setTotal" type="number" min="1" max="50" value="${cfg?.total || 16}"></div>
     <button class="btn btn-primary" onclick="saveTotalTables()">Simpan</button>
     <p id="totalMsg" class="muted" style="margin-top:8px;"></p>
   </div>
   <div class="card">
     <h3>Ganti Password Admin</h3>
-    <div class="field"><label>Password baru</label>
+    <div class="field" style="margin-top:10px;"><label>Password baru</label>
       <div class="pwd-wrap">
         <input id="newAdminPass" type="password" placeholder="minimal 6 karakter">
         <button type="button" class="pwd-toggle" onclick="togglePwd('newAdminPass', this)">Lihat</button>
