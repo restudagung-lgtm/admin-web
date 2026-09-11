@@ -19,6 +19,7 @@ function go(view, extra){
 function render(){
   if(state.view === 'admin-auth') renderAdminAuth();
   else if(state.view === 'admin-dash') renderAdminDash();
+  mountIcons();
 }
 
 /* ---------- nyalakan aplikasi ---------- */
